@@ -1,69 +1,181 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState } from "react";
+import { Navbar } from "@/components/Navbar";
+import { HeroSection, HeroKingState } from "@/components/HeroSection";
+import { RoyalDecreeModal, RealmChoice } from "@/components/RoyalDecreeModal";
+import { TrailerModal } from "@/components/TrailerModal";
+import { PlayGameModal } from "@/components/PlayGameModal";
+import { StorySection } from "@/components/StorySection";
+import { CharactersSection } from "@/components/CharactersSection";
+import { RealmMapSection } from "@/components/RealmMapSection";
+import { NewsSection } from "@/components/NewsSection";
+import { Footer } from "@/components/Footer";
 
 export default function Home() {
+  const [decreeModalOpen, setDecreeModalOpen] = useState(false);
+  const [trailerModalOpen, setTrailerModalOpen] = useState(false);
+  const [playModalOpen, setPlayModalOpen] = useState(false);
+  const [heroState, setHeroState] = useState<HeroKingState>("IDLE_SEATED");
+  const [risingRequested, setRisingRequested] = useState(false);
+  const [savedChoice, setSavedChoice] = useState<RealmChoice | null>(null);
+  const [playerOath, setPlayerOath] = useState<string | null>(null);
+
+  const handleSaveChoice = (choice: RealmChoice) => {
+    setSavedChoice(choice);
+    setPlayerOath(choice.alignment);
+    setDecreeModalOpen(false);
+    if (heroState === "DECREE_OPEN") {
+      setHeroState("STOPPING_READING");
+    }
+  };
+
+  const handleCloseDecreeModal = () => {
+    setDecreeModalOpen(false);
+    if (heroState === "DECREE_OPEN") {
+      setHeroState("STOPPING_READING");
+    }
+  };
+
+  const handleSealedOathFromPrologue = (title: string) => {
+    setPlayerOath(title);
+    setHeroState("IDLE_SEATED");
+  };
+
+  const handleExploreStory = () => {
+    const el = document.getElementById("pribeh");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  // Trigger King Rising cinematic when user clicks "HRÁT NYNÍ"
+  const handleNavbarPlayClick = () => {
+    if (heroState === "IDLE_SEATED") {
+      // If user is far down in another section, smooth scroll up
+      if (typeof window !== "undefined" && window.scrollY > window.innerHeight * 1.5) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setTimeout(() => {
+          setRisingRequested(true);
+        }, 500);
+      } else {
+        // User is inside the hero section: request smooth hand rewind without any page scroll/jump!
+        setRisingRequested(true);
+      }
+    } else if (heroState === "STANDING_READY") {
+      setPlayModalOpen(true);
+    }
+  };
+
+  const handleTriggerRising = () => {
+    setRisingRequested(false);
+    setHeroState("RISING");
+  };
+
+  const handleFinishReading = () => {
+    setHeroState("DECREE_OPEN");
+    setDecreeModalOpen(true);
+  };
+
+  const handleFinishStopReading = () => {
+    setHeroState("IDLE_SEATED");
+  };
+
+  const isCinematicActive = heroState !== "IDLE_SEATED";
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="min-h-screen bg-[#0E0D0C] text-[#F3EFE6] relative">
+      {/* Top Navigation Bar with Signature Gold Filigree Divider */}
+      <Navbar
+        onOpenPlayModal={handleNavbarPlayClick}
+        playerOath={playerOath}
+        onOpenDecreeModal={() => setDecreeModalOpen(true)}
+        isCinematicActive={isCinematicActive}
+      />
+
+      {/* 
+        ========================================================================
+        HERO SECTION: King Cinematic State Machine
+        State A: IDLE_SEATED (Paused at 0.0s, seated king, UI visible, scroll hand-raise)
+        State B: RISING -> STANDING_READY (Triggered by "HRÁT NYNÍ", holds on standing frame)
+        State C: SITTING_DOWN -> IDLE_SEATED (Triggered by "Usadit krále", smoothly returns to throne)
+        State D: READING_DECREE -> DECREE_OPEN (Triggered by "[ ČÍST POSELSTVÍ ]", plays king-reading.mp4)
+        State E: STOPPING_READING -> IDLE_SEATED (Triggered on closing decree, plays king-stop-reading.mp4)
+        ========================================================================
+      */}
+      <HeroSection
+        onOpenDecree={() => setDecreeModalOpen(true)}
+        onOpenTrailer={() => setTrailerModalOpen(true)}
+        onExploreStory={handleExploreStory}
+        onOpenPlayModal={() => setPlayModalOpen(true)}
+        heroState={heroState}
+        risingRequested={risingRequested}
+        onTriggerRising={handleTriggerRising}
+        onFinishRising={() => setHeroState("STANDING_READY")}
+        onTriggerSitting={() => setHeroState("SITTING_DOWN")}
+        onFinishSitting={() => setHeroState("IDLE_SEATED")}
+        onTriggerReading={() => setHeroState("READING_DECREE")}
+        onFinishReading={handleFinishReading}
+        onFinishStopReading={handleFinishStopReading}
+      />
+
+      {/* 
+        ========================================================================
+        SECTION 1: PŘÍBĚH (Story & Chapter Timeline)
+        ========================================================================
+      */}
+      <StorySection />
+
+      {/* 
+        ========================================================================
+        SECTION 2: POSTAVY (Court & Character Showcase)
+        ========================================================================
+      */}
+      <CharactersSection />
+
+      {/* 
+        ========================================================================
+        SECTION 3: INTERAKTIVNÍ MAPA (Interactive Realm Map)
+        ========================================================================
+      */}
+      <RealmMapSection />
+
+      {/* 
+        ========================================================================
+        SECTION 4: NOVINKY & KRONIKY (News, Updates & Articles)
+        ========================================================================
+      */}
+      <NewsSection />
+
+      {/* 
+        ========================================================================
+        FOOTER
+        ========================================================================
+      */}
+      <Footer />
+
+      {/* 
+        ========================================================================
+        INTERACTIVE MODALS
+        ========================================================================
+      */}
+      <RoyalDecreeModal
+        isOpen={decreeModalOpen}
+        onClose={handleCloseDecreeModal}
+        onSaveChoice={handleSaveChoice}
+        savedChoice={savedChoice}
+      />
+
+      <TrailerModal
+        isOpen={trailerModalOpen}
+        onClose={() => setTrailerModalOpen(false)}
+      />
+
+      <PlayGameModal
+        isOpen={playModalOpen}
+        onClose={() => setPlayModalOpen(false)}
+        onSealedOath={handleSealedOathFromPrologue}
+      />
+    </main>
   );
 }
